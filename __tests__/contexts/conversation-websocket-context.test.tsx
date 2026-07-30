@@ -8,6 +8,7 @@ import { useOptimisticUserMessageStore } from "#/stores/optimistic-user-message-
 import { useBrowserStore } from "#/stores/browser-store";
 import { useCommandStore } from "#/stores/command-store";
 import { useErrorMessageStore } from "#/stores/error-message-store";
+import useMetricsStore from "#/stores/metrics-store";
 import { useUserConversation } from "#/hooks/query/use-user-conversation";
 import EventService from "#/api/event-service/event-service.api";
 import {
@@ -106,6 +107,11 @@ describe("ConversationWebSocketProvider — conversation-scoped event store", ()
     useBrowserStore.getState().reset();
     useCommandStore.setState({ commands: [] });
     useErrorMessageStore.getState().removeErrorMessage();
+    useMetricsStore.getState().setMetrics({
+      cost: null,
+      max_budget_per_task: null,
+      usage: null,
+    });
 
     vi.mocked(useUserConversation).mockReturnValue({
       data: { conversation_url: "http://localhost/api", session_api_key: null },
@@ -196,6 +202,73 @@ describe("ConversationWebSocketProvider — conversation-scoped event store", ()
     expect(wsCapture.mainOptions?.queryParams).not.toHaveProperty(
       "session_api_key",
     );
+  });
+
+  it("sums all WebSocket stats usage buckets into the fallback metrics store", async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ConversationWebSocketProvider
+          conversationId="conv-metrics"
+          conversationUrl="http://localhost/api"
+        >
+          <div />
+        </ConversationWebSocketProvider>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(wsCapture.mainOnMessage).not.toBeNull());
+
+    act(() => {
+      wsCapture.mainOnMessage!({
+        data: JSON.stringify({
+          id: "stats-1",
+          source: "environment",
+          timestamp: "2026-01-01T00:00:00Z",
+          kind: "ConversationStateUpdateEvent",
+          key: "stats",
+          value: {
+            usage_to_metrics: {
+              agent: {
+                accumulated_cost: 1.25,
+                max_budget_per_task: 10,
+                accumulated_token_usage: {
+                  prompt_tokens: 10,
+                  completion_tokens: 20,
+                  cache_read_tokens: 3,
+                  cache_write_tokens: 4,
+                  context_window: 100,
+                  per_turn_token: 30,
+                },
+              },
+              "profile:fast": {
+                accumulated_cost: 2.5,
+                max_budget_per_task: null,
+                accumulated_token_usage: {
+                  prompt_tokens: 5,
+                  completion_tokens: 7,
+                  cache_read_tokens: 11,
+                  cache_write_tokens: 13,
+                  context_window: 200,
+                  per_turn_token: 40,
+                },
+              },
+            },
+          },
+        }),
+      });
+    });
+
+    expect(useMetricsStore.getState()).toMatchObject({
+      cost: 3.75,
+      max_budget_per_task: 10,
+      usage: {
+        prompt_tokens: 15,
+        completion_tokens: 27,
+        cache_read_tokens: 14,
+        cache_write_tokens: 17,
+        context_window: 200,
+        per_turn_token: 40,
+      },
+    });
   });
 
   it("uses the planning sub-conversation session key", async () => {

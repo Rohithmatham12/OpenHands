@@ -222,7 +222,7 @@ export function ConversationCard({
             showPersistentPinIcon
               ? "min-w-[3.75rem]"
               : hasHoverActions &&
-                  "group-hover:min-w-[3.75rem] group-focus-within:min-w-[3.75rem]",
+                  "min-w-[3.75rem] md:min-w-0 md:group-hover:min-w-[3.75rem] md:group-focus-within:min-w-[3.75rem]",
             contextMenuOpen && "min-w-[3.75rem]",
           )}
         >
@@ -231,7 +231,7 @@ export function ConversationCard({
               className={cn(
                 "text-xs text-[var(--oh-muted)] text-right whitespace-nowrap transition-opacity -translate-x-1.5",
                 hasHoverActions &&
-                  "group-hover:opacity-0 group-focus-within:opacity-0",
+                  "hidden md:block md:group-hover:opacity-0 md:group-focus-within:opacity-0",
                 contextMenuOpen && "opacity-0",
               )}
             >
@@ -246,9 +246,10 @@ export function ConversationCard({
                 showPersistentPinIcon
                   ? "pointer-events-auto visible opacity-100"
                   : cn(
-                      "pointer-events-none opacity-0 invisible",
-                      "group-hover:pointer-events-auto group-hover:opacity-100 group-hover:visible",
-                      "group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible",
+                      "pointer-events-auto visible opacity-100",
+                      "md:pointer-events-none md:opacity-0 md:invisible",
+                      "md:group-hover:pointer-events-auto md:group-hover:opacity-100 md:group-hover:visible",
+                      "md:group-focus-within:pointer-events-auto md:group-focus-within:opacity-100 md:group-focus-within:visible",
                     ),
                 contextMenuOpen && "pointer-events-auto visible opacity-100",
               )}
@@ -261,7 +262,7 @@ export function ConversationCard({
                   <div
                     className={cn(
                       !contextMenuOpen &&
-                        "invisible pointer-events-none group-hover:visible group-hover:pointer-events-auto group-focus-within:visible group-focus-within:pointer-events-auto",
+                        "md:invisible md:pointer-events-none md:group-hover:visible md:group-hover:pointer-events-auto md:group-focus-within:visible md:group-focus-within:pointer-events-auto",
                     )}
                   >
                     <ConversationCardActions
@@ -281,7 +282,7 @@ export function ConversationCard({
                     className={cn(
                       "pointer-events-none absolute inset-0 flex items-center justify-end",
                       "text-xs text-[var(--oh-muted)] whitespace-nowrap -translate-x-1.5",
-                      "group-hover:hidden group-focus-within:hidden",
+                      "hidden md:flex md:group-hover:hidden md:group-focus-within:hidden",
                       contextMenuOpen && "hidden",
                     )}
                   >

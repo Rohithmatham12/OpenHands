@@ -35,6 +35,21 @@ describe("vite path resolution", () => {
   });
 });
 
+describe("vite dev server watch", () => {
+  it("ignores agent-canvas runtime state directories even if they land inside the project", async () => {
+    const config = await viteConfig({ mode: "development", command: "serve" });
+
+    expect(config.server?.watch?.ignored).toEqual(
+      expect.arrayContaining([
+        "**/.openhands/**",
+        "**/$HOME/**",
+        "**/dev_conversations/**",
+        "**/logs/**",
+      ]),
+    );
+  });
+});
+
 describe("vite app build", () => {
   it("configures Rolldown code splitting for large vendor chunks", async () => {
     const config = await viteConfig({ mode: "production", command: "build" });
@@ -54,7 +69,9 @@ describe("vite app build", () => {
       };
     };
 
-    expect(appBuild.build?.rolldownOptions?.output?.codeSplitting?.groups).toEqual(
+    expect(
+      appBuild.build?.rolldownOptions?.output?.codeSplitting?.groups,
+    ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: "vendor",

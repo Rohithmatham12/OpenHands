@@ -42,6 +42,7 @@ export function BtwMessages({ conversationId }: BtwMessagesProps) {
                 ? t(I18nKey.CHAT_INTERFACE$BTW_WAITING_FOR_ANSWER)
                 : (entry.response ?? "")
             }
+            detailsClassName="max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar-always"
             initiallyExpanded={!isPending}
             chevronPosition="before"
             titleTrailing={

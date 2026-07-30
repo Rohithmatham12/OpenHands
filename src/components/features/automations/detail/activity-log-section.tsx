@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
 import { useAutomationRuns } from "#/hooks/query/use-automation-detail";
+import AutomationService from "#/api/automation-service/automation-service.api";
 import ActivityIcon from "#/icons/activity.svg?react";
+import DownloadIcon from "#/icons/download.svg?react";
+import { downloadBlob } from "#/utils/utils";
 import { ActivityLogItem } from "./activity-log-item";
 import type { Automation } from "#/types/automation";
 
@@ -15,6 +18,7 @@ const PAGE_SIZE = 20;
 export function ActivityLogSection({ automation }: ActivityLogSectionProps) {
   const { t } = useTranslation("openhands");
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [isExporting, setIsExporting] = useState(false);
   const { data, isLoading } = useAutomationRuns({
     id: automation.id,
     limit,
@@ -22,16 +26,67 @@ export function ActivityLogSection({ automation }: ActivityLogSectionProps) {
   });
 
   const hasMore = data ? data.total > data.runs.length : false;
+  const hasRuns = !!data && data.runs.length > 0;
+
+  const handleExport = async () => {
+    if (!data || data.total === 0) return;
+    setIsExporting(true);
+    try {
+      const runs =
+        data.runs.length >= data.total
+          ? data.runs
+          : (
+              await AutomationService.getAutomationRuns(
+                automation.id,
+                data.total,
+                0,
+              )
+            ).runs;
+      const contents = `${JSON.stringify(
+        {
+          version: 1,
+          kind: "automation_activity_log",
+          automation: {
+            id: automation.id,
+            name: automation.name,
+          },
+          exported_at: new Date().toISOString(),
+          total: runs.length,
+          runs,
+        },
+        null,
+        2,
+      )}\n`;
+      downloadBlob(
+        new Blob([contents], { type: "application/json" }),
+        `${automation.id}-activity-log.json`,
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-[var(--oh-border)] bg-[var(--oh-surface)]">
-      <div className="flex items-center gap-2 border-b border-[var(--oh-border)] px-5 py-3">
-        <span className="size-4 text-muted">
-          <ActivityIcon className="size-4" />
-        </span>
-        <h3 className="text-sm font-medium text-content">
-          {t(I18nKey.AUTOMATIONS$DETAIL$ACTIVITY_LOG)}
-        </h3>
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--oh-border)] px-5 py-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="size-4 text-muted">
+            <ActivityIcon className="size-4" />
+          </span>
+          <h3 className="text-sm font-medium text-content">
+            {t(I18nKey.AUTOMATIONS$DETAIL$ACTIVITY_LOG)}
+          </h3>
+        </div>
+        <button
+          type="button"
+          disabled={!hasRuns || isExporting}
+          onClick={handleExport}
+          className="rounded-md p-1 text-muted hover:bg-surface-raised hover:text-foreground focus:bg-surface-raised focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={t(I18nKey.AUTOMATIONS$EXPORT)}
+          title={t(I18nKey.AUTOMATIONS$EXPORT)}
+        >
+          <DownloadIcon className="size-4" />
+        </button>
       </div>
 
       {isLoading && (

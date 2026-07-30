@@ -1,4 +1,5 @@
 import { screen, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import PlannerTab from "#/routes/planner-tab";
 import { renderWithProviders } from "../../test-utils";
@@ -128,6 +129,24 @@ describe("PlannerTab", () => {
           );
         }
       }
+    });
+  });
+
+  describe("Copy plan", () => {
+    it("copies the current plan markdown to the clipboard", async () => {
+      const user = userEvent.setup();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(navigator.clipboard, "writeText").mockImplementation(writeText);
+      useConversationStore.setState({
+        planContent: "# Plan\n\n- First task",
+        conversationMode: "plan",
+      });
+
+      renderWithProviders(<PlannerTab />);
+
+      await user.click(screen.getByTestId("copy-to-clipboard"));
+
+      expect(writeText).toHaveBeenCalledWith("# Plan\n\n- First task");
     });
   });
 });

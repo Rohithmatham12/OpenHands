@@ -9,6 +9,8 @@ describe("transformVSCodeUrl", () => {
     Object.defineProperty(window, "location", {
       value: {
         hostname: "example.com",
+        port: "443",
+        protocol: "https:",
       },
       writable: true,
     });
@@ -26,9 +28,9 @@ describe("transformVSCodeUrl", () => {
     expect(transformVSCodeUrl(null)).toBeNull();
   });
 
-  it("should replace localhost with current hostname when they differ", () => {
+  it("should replace localhost with current browser origin when they differ", () => {
     const input = "http://localhost:8080/?tkn=abc123&folder=/workspace";
-    const expected = "http://example.com:8080/?tkn=abc123&folder=/workspace";
+    const expected = "https://example.com/?tkn=abc123&folder=/workspace";
 
     expect(transformVSCodeUrl(input)).toBe(expected);
   });
@@ -44,6 +46,8 @@ describe("transformVSCodeUrl", () => {
     Object.defineProperty(window, "location", {
       value: {
         hostname: "localhost",
+        port: "8080",
+        protocol: "http:",
       },
       writable: true,
     });

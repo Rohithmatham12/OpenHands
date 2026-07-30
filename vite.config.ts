@@ -433,7 +433,14 @@ export default defineConfig(({ mode }) => {
         },
       },
       watch: {
-        ignored: ["**/node_modules/**", "**/.git/**"],
+        ignored: [
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/.openhands/**",
+          "**/$HOME/**",
+          "**/dev_conversations/**",
+          "**/logs/**",
+        ],
       },
     },
     ssr: {

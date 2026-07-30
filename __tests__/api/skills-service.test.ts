@@ -98,6 +98,31 @@ describe("SkillsService.getSkills against the agent-server backend", () => {
     expect(skills.slice(1).every((s) => s.source === "public")).toBe(true);
   });
 
+  it("filters out skills discovered inside automation-run worktrees", async () => {
+    mockGetSkills.mockResolvedValue({
+      skills: [
+        {
+          name: "automation-run-agents",
+          type: "repo",
+          source:
+            "/Users/test/.openhands/agent-canvas/workspaces/automation-runs/run-1/repo/AGENTS.md",
+        },
+        {
+          name: "project-agents",
+          type: "repo",
+          source: "/Users/test/workspace/repo/AGENTS.md",
+        },
+      ],
+    });
+
+    const skills = await SkillsService.getSkills();
+
+    expect(skills.map((skill) => skill.name)).not.toContain(
+      "automation-run-agents",
+    );
+    expect(skills.map((skill) => skill.name)).toContain("project-agents");
+  });
+
   it("returns only bundled public skills when agent-server is unreachable", async () => {
     mockGetSkills.mockRejectedValue(new Error("ECONNREFUSED"));
 

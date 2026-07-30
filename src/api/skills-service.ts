@@ -32,6 +32,14 @@ function catalogEntryToSkillInfo(entry: SkillCatalogEntry): SkillInfo {
  */
 const PUBLIC_SKILLS: SkillInfo[] = SKILLS_CATALOG.map(catalogEntryToSkillInfo);
 
+function isAutomationRunSkill(skill: SkillInfo): boolean {
+  if (typeof skill.source !== "string") {
+    return false;
+  }
+
+  return skill.source.replaceAll("\\", "/").includes("/automation-runs/");
+}
+
 class SkillsService {
   static async getSkills(projectDir?: string): Promise<SkillInfo[]> {
     if (getActiveBackend().backend.kind === "cloud") {
@@ -59,7 +67,10 @@ class SkillsService {
       // unreachable; fall back to the bundled public catalog alone.
     }
 
-    return [...localSkills, ...PUBLIC_SKILLS];
+    return [
+      ...localSkills.filter((skill) => !isAutomationRunSkill(skill)),
+      ...PUBLIC_SKILLS,
+    ];
   }
 }
 

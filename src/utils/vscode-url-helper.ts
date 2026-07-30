@@ -1,8 +1,8 @@
 /**
  * Helper function to transform VS Code URLs
  *
- * This function checks if a VS Code URL points to localhost and replaces it with
- * the current window's hostname if they don't match.
+ * This function checks if a VS Code URL points to localhost and replaces it
+ * with the current window origin when they don't match.
  *
  * @param vsCodeUrl The original VS Code URL from the backend
  * @returns The transformed URL with the correct hostname
@@ -18,8 +18,11 @@ export function transformVSCodeUrl(vsCodeUrl: string | null): string | null {
       url.hostname === "localhost" &&
       window.location.hostname !== "localhost"
     ) {
-      // Replace localhost with the current hostname
+      // Match the browser origin so reverse-proxied deployments don't leak the
+      // backend's localhost host/port back to the browser.
       url.hostname = window.location.hostname;
+      url.protocol = window.location.protocol;
+      url.port = window.location.port;
       return url.toString();
     }
 

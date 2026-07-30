@@ -227,6 +227,29 @@ describe("ConversationCard", () => {
     expect(onContextMenuToggle).toHaveBeenCalledWith(false);
   });
 
+  it("keeps hover actions tappable on small touch layouts while preserving desktop hover reveal classes", () => {
+    renderWithProviders(
+      <ConversationCard
+        onDelete={onDelete}
+        onChangeTitle={onChangeTitle}
+        title="Conversation 1"
+        selectedRepository={null}
+        lastUpdatedAt="2021-10-01T12:00:00Z"
+      />,
+    );
+
+    const ellipsisButton = screen.getByTestId("ellipsis-button");
+    const actionTray = ellipsisButton.closest(".pointer-events-auto");
+
+    expect(actionTray).toHaveClass(
+      "pointer-events-auto",
+      "visible",
+      "opacity-100",
+      "md:pointer-events-none",
+      "md:group-hover:pointer-events-auto",
+    );
+  });
+
   it("should call onDelete when the delete button is clicked", async () => {
     const user = userEvent.setup();
     const onContextMenuToggle = vi.fn();
@@ -687,9 +710,9 @@ describe("ConversationCard", () => {
         />,
       );
 
-      expect(
-        screen.getAllByTestId("conversation-card-tag-chip"),
-      ).toHaveLength(3);
+      expect(screen.getAllByTestId("conversation-card-tag-chip")).toHaveLength(
+        3,
+      );
       expect(
         screen.queryByTestId("conversation-card-tag-overflow"),
       ).not.toBeInTheDocument();

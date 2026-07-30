@@ -19,6 +19,8 @@ interface GenericEventMessageProps {
   titleTrailing?: React.ReactNode;
   /** Optional icon rendered before the title text. */
   titleIcon?: React.ReactNode;
+  /** Optional wrapper classes for expanded details. */
+  detailsClassName?: string;
 }
 
 export function GenericEventMessage({
@@ -29,6 +31,7 @@ export function GenericEventMessage({
   chevronPosition = "after",
   titleTrailing,
   titleIcon,
+  detailsClassName,
 }: GenericEventMessageProps) {
   const { t } = useTranslation("openhands");
   const [showDetails, setShowDetails] = React.useState(initiallyExpanded);
@@ -81,7 +84,15 @@ export function GenericEventMessage({
       </div>
 
       {showDetails &&
-        (typeof details === "string" ? (
+        (detailsClassName ? (
+          <div className={detailsClassName}>
+            {typeof details === "string" ? (
+              <MarkdownRenderer>{details}</MarkdownRenderer>
+            ) : (
+              details
+            )}
+          </div>
+        ) : typeof details === "string" ? (
           <MarkdownRenderer>{details}</MarkdownRenderer>
         ) : (
           details

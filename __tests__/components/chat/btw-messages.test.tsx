@@ -40,6 +40,17 @@ describe("<BtwMessages />", () => {
     expect(entriesFor(CONV)).toEqual([]);
   });
 
+  it("renders resolved responses inside a scrollable details region", () => {
+    const id = useBtwStore.getState().addPending(CONV, "why?");
+    useBtwStore.getState().resolve(CONV, id, "because\n\n".repeat(80));
+    const { container } = render(<BtwMessages conversationId={CONV} />);
+
+    expect(container.querySelector(".overflow-y-auto")).toHaveClass(
+      "max-h-[40vh]",
+      "custom-scrollbar-always",
+    );
+  });
+
   it("does not render entries from other conversations", () => {
     useBtwStore.getState().addPending("other-conv", "not mine");
     const { container } = render(<BtwMessages conversationId={CONV} />);

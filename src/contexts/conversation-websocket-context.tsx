@@ -71,6 +71,7 @@ import {
   getStoredConversationMetadata,
   setStoredConversationMetadata,
 } from "#/api/conversation-metadata-store";
+import { getCombinedMetrics } from "#/utils/conversation-metrics";
 
 export type WebSocketConnectionState =
   | "CONNECTING"
@@ -189,30 +190,29 @@ export function ConversationWebSocketProvider({
   // Helper function to update metrics from stats event
   const updateMetricsFromStats = useCallback(
     (event: ConversationStateUpdateEventStats) => {
-      if (event.value.usage_to_metrics?.agent) {
-        const agentMetrics = event.value.usage_to_metrics.agent;
-        const metrics = {
-          cost: agentMetrics.accumulated_cost,
-          max_budget_per_task: agentMetrics.max_budget_per_task ?? null,
-          usage: agentMetrics.accumulated_token_usage
-            ? {
-                prompt_tokens:
-                  agentMetrics.accumulated_token_usage.prompt_tokens,
-                completion_tokens:
-                  agentMetrics.accumulated_token_usage.completion_tokens,
-                cache_read_tokens:
-                  agentMetrics.accumulated_token_usage.cache_read_tokens,
-                cache_write_tokens:
-                  agentMetrics.accumulated_token_usage.cache_write_tokens,
-                context_window:
-                  agentMetrics.accumulated_token_usage.context_window,
-                per_turn_token:
-                  agentMetrics.accumulated_token_usage.per_turn_token,
-              }
-            : null,
-        };
-        useMetricsStore.getState().setMetrics(metrics);
-      }
+      if (!event.value.usage_to_metrics) return;
+
+      const combinedMetrics = getCombinedMetrics({ stats: event.value });
+      useMetricsStore.getState().setMetrics({
+        cost: combinedMetrics.accumulated_cost,
+        max_budget_per_task: combinedMetrics.max_budget_per_task ?? null,
+        usage: combinedMetrics.accumulated_token_usage
+          ? {
+              prompt_tokens:
+                combinedMetrics.accumulated_token_usage.prompt_tokens,
+              completion_tokens:
+                combinedMetrics.accumulated_token_usage.completion_tokens,
+              cache_read_tokens:
+                combinedMetrics.accumulated_token_usage.cache_read_tokens,
+              cache_write_tokens:
+                combinedMetrics.accumulated_token_usage.cache_write_tokens,
+              context_window:
+                combinedMetrics.accumulated_token_usage.context_window,
+              per_turn_token:
+                combinedMetrics.accumulated_token_usage.per_turn_token,
+            }
+          : null,
+      });
     },
     [],
   );

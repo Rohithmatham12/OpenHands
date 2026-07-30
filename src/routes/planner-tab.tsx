@@ -9,9 +9,11 @@ import { useScrollToBottom } from "#/hooks/use-scroll-to-bottom";
 import { MarkdownRenderer } from "#/components/features/markdown/markdown-renderer";
 import { planComponents } from "#/components/features/markdown/plan-components";
 import { useHandlePlanClick } from "#/hooks/use-handle-plan-click";
+import { CopyToClipboardButton } from "#/components/shared/buttons/copy-to-clipboard-button";
 
 function PlannerTab() {
   const { t } = useTranslation("openhands");
+  const [copied, setCopied] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const {
     scrollRef: scrollContainerRef,
@@ -28,16 +30,35 @@ function PlannerTab() {
       scrollDomToBottom();
     }
   }, [planContent, autoScroll, scrollDomToBottom]);
+  React.useEffect(() => {
+    if (!copied) return undefined;
+    const timeout = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [copied]);
+
   const isPlanMode = conversationMode === "plan";
   const { handlePlanClick } = useHandlePlanClick();
 
   if (planContent !== null && planContent !== undefined) {
+    const handleCopyPlan = async () => {
+      await navigator.clipboard.writeText(planContent);
+      setCopied(true);
+    };
+
     return (
       <div
         ref={scrollContainerRef}
         onScroll={(e) => onChatBodyScroll(e.currentTarget)}
-        className="flex flex-col w-full h-full p-4 overflow-auto"
+        className="relative flex flex-col w-full h-full p-4 overflow-auto"
       >
+        <div className="sticky top-0 z-10 ml-auto rounded-md bg-base-secondary/90">
+          <CopyToClipboardButton
+            isHidden={false}
+            isDisabled={copied}
+            onClick={handleCopyPlan}
+            mode={copied ? "copied" : "copy"}
+          />
+        </div>
         <MarkdownRenderer includeStandard components={planComponents}>
           {planContent}
         </MarkdownRenderer>
