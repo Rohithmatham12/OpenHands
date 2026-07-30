@@ -1,6 +1,7 @@
 import { EventID, ToolCallID } from "../base/common";
 import { BaseEvent } from "../base/event";
 import { Observation } from "../base/observation";
+import { ErrorClassification } from "#/types/error-classification";
 
 // Base interface for observation events
 export interface ObservationBaseEvent extends BaseEvent {
@@ -69,4 +70,5 @@ export interface AgentErrorEvent extends BaseEvent {
    * The error message from the scaffold
    */
   error: string;
+  classification?: ErrorClassification | null;
 }

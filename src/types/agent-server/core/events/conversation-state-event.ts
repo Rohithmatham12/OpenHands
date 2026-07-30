@@ -1,5 +1,6 @@
 import { BaseEvent } from "../base/event";
 import { ExecutionStatus } from "../base/common";
+import { ErrorClassification } from "#/types/error-classification";
 
 /**
  * Token usage metrics for LLM calls
@@ -170,6 +171,7 @@ export interface ConversationErrorEvent extends BaseEvent {
    * Detailed error message
    */
   detail: string;
+  classification?: ErrorClassification | null;
 }
 
 // Server error event - contains error information
